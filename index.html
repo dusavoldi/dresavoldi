@@ -3,52 +3,680 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>dresavoldi</title>
+  <title>Prontuário Neurológico</title>
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0a192f">
   <style>
+    :root {
+      color-scheme: light;
+      font-size: 16px;
+      --bg: #f1f5f9;
+      --primary: #0f172a;
+      --secondary: #1e293b;
+      --accent: #2563eb;
+      --border: #e2e8f0;
+      --muted: #64748b;
+      --surface: #ffffff;
+      --surface-alt: #f8fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      color: #333;
-      line-height: 1.6;
+      min-height: 100vh;
+      background: var(--bg);
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      color: var(--secondary);
     }
+
     header {
-      background: #0a192f;
+      background: linear-gradient(135deg, var(--primary), #1d4ed8);
       color: #fff;
-      padding: 1rem;
+      padding: 1.75rem 1rem;
       text-align: center;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.35);
     }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(1.7rem, 3vw, 2.2rem);
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    header p {
+      margin: 0.5rem 0 0;
+      font-size: 1rem;
+      opacity: 0.9;
+    }
+
     main {
-      padding: 2rem;
+      padding: 2.5rem 1.25rem 3.5rem;
+      max-width: 1200px;
+      margin: 0 auto;
     }
-    .hero {
-      background: #e0f7fa;
-      padding: 2rem;
-      border-radius: 8px;
-      text-align: center;
+
+    .layout {
+      display: flex;
+      gap: 1.75rem;
+      flex-wrap: wrap;
+      align-items: stretch;
     }
+
+    .panel {
+      background: var(--surface);
+      border-radius: 18px;
+      box-shadow: 0 25px 45px rgba(15, 23, 42, 0.12);
+      padding: 1.75rem;
+      flex: 1 1 380px;
+      min-height: 540px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      border: 1px solid transparent;
+      background: var(--surface-alt);
+      color: var(--secondary);
+      border-radius: 999px;
+      padding: 0.55rem 1.2rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn:hover {
+      border-color: rgba(37, 99, 235, 0.4);
+      color: var(--accent);
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+    }
+
+    .tcontent {
+      margin-top: 1.75rem;
+      display: none;
+      flex: 1;
+    }
+
+    .tcontent.active {
+      display: block;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .form-group {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      color: var(--secondary);
+      font-size: 0.92rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .label {
+      display: block;
+      font-weight: 600;
+      color: var(--secondary);
+      font-size: 0.9rem;
+      margin-bottom: 0.35rem;
+    }
+
+    input[type="text"],
+    input[type="date"],
+    textarea {
+      width: 100%;
+      padding: 0.7rem 0.85rem;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--secondary);
+      font-size: 0.95rem;
+      box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.08);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input[type="text"]:focus,
+    input[type="date"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: rgba(37, 99, 235, 0.65);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    textarea {
+      resize: none;
+      min-height: 80px;
+      line-height: 1.5;
+    }
+
+    .toggle-group {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .toggle-group button {
+      border: 1px solid var(--border);
+      background: var(--surface-alt);
+      color: var(--secondary);
+      border-radius: 999px;
+      padding: 0.4rem 0.9rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .toggle-group button.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+      box-shadow: 0 10px 20px rgba(37, 99, 235, 0.25);
+    }
+
+    .toggle-group input {
+      width: 160px;
+      border-radius: 999px;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.9rem;
+    }
+
+    .section {
+      background: var(--surface-alt);
+      border-radius: 16px;
+      padding: 1.25rem 1.35rem;
+      box-shadow: inset 0 1px 0 rgba(15, 23, 42, 0.05);
+    }
+
+    .coll-h {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      gap: 0.5rem;
+    }
+
+    .coll-h h2,
+    .coll-h h3 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--secondary);
+    }
+
+    .chevron {
+      font-size: 1.15rem;
+      transition: transform 0.2s ease;
+    }
+
+    .coll-h.collapsed .chevron {
+      transform: rotate(-90deg);
+    }
+
+    .section-body {
+      margin-top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+    }
+
+    .section-body.collapsed {
+      display: none;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      padding: 0.4rem 0.9rem;
+      border-radius: 999px;
+      background: rgba(37, 99, 235, 0.12);
+      color: var(--accent);
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    #save-status {
+      font-weight: 600;
+      transition: opacity 0.25s ease;
+    }
+
+    .opacity-0 {
+      opacity: 0;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.55rem 1.2rem;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(37, 99, 235, 0.25);
+    }
+
+    .btn.btnp {
+      background: var(--primary);
+    }
+
+    .copy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.75rem;
+      margin-top: 0.75rem;
+    }
+
+    pre {
+      background: var(--surface-alt);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem;
+      line-height: 1.6;
+      font-size: 0.9rem;
+      font-family: "JetBrains Mono", "Fira Code", monospace;
+      max-height: 320px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    #results {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      padding: 1.2rem 1.4rem;
+      box-shadow: 0 15px 35px rgba(15, 23, 42, 0.08);
+    }
+
+    .card h4 {
+      margin: 0 0 0.4rem;
+      font-size: 1.1rem;
+      color: var(--primary);
+    }
+
+    .card p {
+      margin: 0.35rem 0;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
     footer {
       text-align: center;
-      padding: 1rem;
-      font-size: 0.9rem;
-      color: #666;
+      padding: 1.5rem 1rem 2.5rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .status-pill.text-green-600 {
+      background: rgba(34, 197, 94, 0.18);
+      color: #15803d;
+    }
+
+    .status-pill.text-red-600 {
+      background: rgba(248, 113, 113, 0.2);
+      color: #b91c1c;
+    }
+
+    #docs-ck {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.5rem;
+    }
+
+    #docs-ck label {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-weight: 600;
+      color: var(--secondary);
+    }
+
+    #docs-ck input[type="checkbox"] {
+      width: 1.1rem;
+      height: 1.1rem;
+      accent-color: var(--accent);
+    }
+
+    .mb-4 { margin-bottom: 1rem; }
+    .mb-2 { margin-bottom: 0.5rem; }
+    .border-b { border-bottom: 1px solid var(--border); }
+    .pb-2 { padding-bottom: 0.5rem; }
+    .text-gray-600 { color: var(--muted); }
+    .text-sm { font-size: 0.9rem; }
+    .text-gray-500 { color: #94a3b8; }
+    .text-xs { font-size: 0.78rem; }
+    .mt-1 { margin-top: 0.25rem; }
+    .mt-2 { margin-top: 0.5rem; }
+    .space-y-3 > * + * { margin-top: 0.75rem; }
+    .flex { display: flex; }
+    .justify-between { justify-content: space-between; }
+    .items-center { align-items: center; }
+    .font-semibold { font-weight: 600; }
+    .text-gray-700 { color: #334155; }
+    .font-bold { font-weight: 700; }
+    .text-blue-700 { color: #1d4ed8; }
+    .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+    .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+    .bg-gray-50 { background: #f8fafc; }
+    .p-2 { padding: 0.5rem; }
+    .rounded { border-radius: 0.75rem; }
+    .border { border: 1px solid var(--border); }
+    .max-h-48 { max-height: 12rem; }
+    .overflow-y-auto { overflow-y: auto; }
+    .w-full { width: 100%; }
+    .text-center { text-align: center; }
+    .whitespace-pre-wrap { white-space: pre-wrap; }
+
+    @media (max-width: 960px) {
+      .panel {
+        padding: 1.35rem;
+      }
+
+      header {
+        padding: 1.5rem 1rem;
+      }
     }
   </style>
 </head>
 <body>
   <header>
-    <h1>Bem-vindo ao site dresavoldi</h1>
+    <h1>Prontuário Neurológico Simplificado</h1>
+    <p>Registre evoluções, condutas e histórico dos pacientes de forma ágil.</p>
   </header>
   <main>
-    <section class="hero">
-      <h2>Site de exemplo</h2>
-      <p>Esta é uma página simples hospedada com GitHub Pages.</p>
-    </section>
+    <div class="layout">
+      <section class="panel" id="left-panel">
+        <div id="left-tabs" class="tabs">
+          <button class="tab-btn active" type="button" data-tab-left="consulta">Consulta</button>
+          <button class="tab-btn" type="button" data-tab-left="historico">Histórico</button>
+        </div>
+        <div id="left-wrap">
+          <div class="tcontent active" id="tab-content-consulta">
+            <form id="form" autocomplete="off">
+              <div class="section">
+                <div class="coll-h" data-sec="dados">
+                  <h2>Dados do Paciente</h2>
+                  <span class="chevron">▾</span>
+                </div>
+                <div class="section-body">
+                  <div class="form-group">
+                    <div>
+                      <label for="paciente-nome">Nome completo</label>
+                      <input type="text" id="paciente-nome" placeholder="Digite o nome do paciente">
+                    </div>
+                    <div>
+                      <label for="paciente-nascimento">Data de nascimento</label>
+                      <input type="text" id="paciente-nascimento" placeholder="dd/mm/aaaa">
+                    </div>
+                    <div>
+                      <label for="paciente-ocupacao">Ocupação</label>
+                      <input type="text" id="paciente-ocupacao" placeholder="Profissão ou atividade">
+                    </div>
+                  </div>
+                  <div class="section">
+                    <div class="coll-h" data-sub="ident-detalhes">
+                      <h3>Acompanhante</h3>
+                      <span class="chevron">▾</span>
+                    </div>
+                    <div class="section-body">
+                      <div class="toggle-group" data-toggle="acompanhante">
+                        <button type="button" data-v="sim">Sim</button>
+                        <button type="button" class="active" data-v="nao">Não</button>
+                        <input type="text" class="hidden" placeholder="Digite o nome do acompanhante">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="section">
+                <div class="coll-h" data-sec="atual">
+                  <h2>Motivo da Consulta</h2>
+                  <span class="chevron">▾</span>
+                </div>
+                <div class="section-body">
+                  <div>
+                    <label for="tx-diag">Diagnóstico / CID</label>
+                    <textarea id="tx-diag" placeholder="Informe diagnósticos, um por linha"></textarea>
+                    <div class="status-row">
+                      <span id="cid-sp" class="status-pill hidden">Identificando códigos CID...</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label for="tx-hist">História inicial</label>
+                    <textarea id="tx-hist" placeholder="Descreva a queixa principal e histórico inicial"></textarea>
+                    <div class="status-row">
+                      <span id="resumo-sp" class="status-pill hidden">Gerando resumo automático...</span>
+                    </div>
+                  </div>
+                  <div>
+                    <label for="tx-atual">Resumo / Situação atual</label>
+                    <textarea id="tx-atual" placeholder="Resumo da evolução atual"></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <div class="section">
+                <div class="coll-h" data-sec="complementares">
+                  <h2>Histórico Clínico</h2>
+                  <span class="chevron">▾</span>
+                </div>
+                <div class="section-body">
+                  <div>
+                    <label for="tx-comorb">Comorbidades relevantes</label>
+                    <textarea id="tx-comorb" placeholder="Hipertensão, Diabetes..."></textarea>
+                  </div>
+                  <div class="section">
+                    <div class="coll-h" data-sub="cirurgias">
+                      <h3>Cirurgias e Hospitalizações</h3>
+                      <span class="chevron">▾</span>
+                    </div>
+                    <div class="section-body">
+                      <textarea id="tx-cirurg" placeholder="Descreva cirurgias e hospitalizações prévias"></textarea>
+                    </div>
+                  </div>
+                  <div class="section">
+                    <div class="coll-h" data-sub="habitos">
+                      <h3>Hábitos</h3>
+                      <span class="chevron">▾</span>
+                    </div>
+                    <div class="section-body">
+                      <div>
+                        <span class="label">Etilismo</span>
+                        <div class="toggle-group" data-toggle="etilismo">
+                          <button type="button" data-v="sim">Sim</button>
+                          <button type="button" class="active" data-v="nao">Nega</button>
+                          <input type="text" class="hidden" placeholder="Detalhe consumo">
+                        </div>
+                      </div>
+                      <div>
+                        <span class="label">Tabagismo</span>
+                        <div class="toggle-group" data-toggle="tabagismo">
+                          <button type="button" data-v="sim">Sim</button>
+                          <button type="button" class="active" data-v="nao">Nega</button>
+                          <input type="text" class="hidden" placeholder="Detalhe consumo">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <label for="tx-med-atuais">Medicamentos em uso</label>
+                    <textarea id="tx-med-atuais" placeholder="Liste medicamentos em uso atual"></textarea>
+                  </div>
+                  <div class="section">
+                    <div class="coll-h" data-sub="uso-previo">
+                      <h3>Uso prévio</h3>
+                      <span class="chevron">▾</span>
+                    </div>
+                    <div class="section-body">
+                      <textarea id="tx-med-prev" placeholder="Medicamentos já utilizados"></textarea>
+                    </div>
+                  </div>
+                  <div>
+                    <label for="tx-complement">Exames complementares</label>
+                    <textarea id="tx-complement" placeholder="Exames de imagem, laboratoriais, etc."></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <div class="section">
+                <div class="coll-h" data-sec="exame-fisico">
+                  <h2>Exame Físico e Conduta</h2>
+                  <span class="chevron">▾</span>
+                </div>
+                <div class="section-body">
+                  <div>
+                    <label for="tx-exame">Exame físico / neurológico</label>
+                    <textarea id="tx-exame" placeholder="Descreva achados relevantes"></textarea>
+                  </div>
+                  <div>
+                    <label for="tx-terapia">Terapia medicamentosa</label>
+                    <textarea id="tx-terapia" placeholder="Medicamentos prescritos"></textarea>
+                  </div>
+                  <div class="section">
+                    <div class="coll-h" data-sub="cond-exames">
+                      <h3>Exames solicitados</h3>
+                      <span class="chevron">▾</span>
+                    </div>
+                    <div class="section-body">
+                      <textarea id="tx-exames" placeholder="Solicitações de exames"></textarea>
+                    </div>
+                  </div>
+                  <div class="section">
+                    <div class="coll-h" data-sub="cond-enc">
+                      <h3>Encaminhamentos</h3>
+                      <span class="chevron">▾</span>
+                    </div>
+                    <div class="section-body">
+                      <textarea id="tx-enc" placeholder="Encaminhamentos realizados"></textarea>
+                    </div>
+                  </div>
+                  <div class="section">
+                    <div class="coll-h" data-sub="cond-docs">
+                      <h3>Documentos emitidos</h3>
+                      <span class="chevron">▾</span>
+                    </div>
+                    <div class="section-body">
+                      <div id="docs-ck" class="form-group">
+                        <label><input type="checkbox" id="ck-atestado" value="Atestado"> Atestado</label>
+                        <label><input type="checkbox" id="ck-decl" value="Declaração"> Declaração acompanhante</label>
+                        <label><input type="checkbox" id="ck-laudo" value="Laudo"> Laudo</label>
+                      </div>
+                      <input type="text" id="in-atel" class="hidden" placeholder="Quantidade de dias do atestado">
+                      <input type="text" id="in-decl" class="hidden" placeholder="Nome do acompanhante para declaração">
+                      <div id="laudo-ops" class="hidden">
+                        <p style="margin:0 0 0.5rem;font-weight:600;">Tipo de laudo</p>
+                        <label style="display:block;margin-bottom:0.4rem;"><input type="radio" name="laudo-tipo" value="Diagnóstico" checked> Diagnóstico</label>
+                        <label style="display:block;margin-bottom:0.4rem;"><input type="radio" name="laudo-tipo" value="Capacidade laborativa"> Capacidade laborativa</label>
+                        <label style="display:block;margin-bottom:0.4rem;"><input type="radio" name="laudo-tipo" value="Outro"> Outro</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <div class="tcontent" id="tab-content-historico-left">
+            <div class="section" style="margin-bottom:1.5rem;">
+              <label for="search-hist">Buscar paciente, diagnóstico ou idade</label>
+              <input type="text" id="search-hist" placeholder="Ex.: Maria, Parkinson, 65">
+            </div>
+            <div id="results"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="right">
+        <div class="tabs">
+          <button class="tab-btn active" type="button" data-tab="evolucao">Evolução</button>
+          <button class="tab-btn" type="button" data-tab="receita">Receita</button>
+          <button class="tab-btn" type="button" data-tab="documentos">Documentos</button>
+        </div>
+        <div class="status-row" style="margin-top:1.5rem;">
+          <span id="save-status" class="status-pill opacity-0">Salvo!</span>
+        </div>
+        <div class="tcontent active" id="tab-content-evolucao">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:1rem;">
+            <h2 style="margin:0;font-size:1.1rem;color:var(--primary);">Prévia da evolução</h2>
+            <button class="btn" type="button" id="copy-evol">Copiar evolução</button>
+          </div>
+          <pre id="out-evol">Preencha os dados da consulta para gerar a evolução.</pre>
+        </div>
+        <div class="tcontent" id="tab-content-receita">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:1rem;">
+            <h2 style="margin:0;font-size:1.1rem;color:var(--primary);">Receita resumida</h2>
+            <button class="btn" type="button" id="copy-rec">Copiar receita</button>
+          </div>
+          <div id="rec-wrap">
+            <pre>Inclua medicamentos em &quot;Terapia medicamentosa&quot; para gerar uma receita resumida.</pre>
+          </div>
+        </div>
+        <div class="tcontent" id="tab-content-documentos">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:1rem;">
+            <h2 style="margin:0;font-size:1.1rem;color:var(--primary);">Documentos</h2>
+            <button class="btn" type="button" id="copy-doc">Copiar documentos</button>
+          </div>
+          <div id="doc-wrap">
+            <pre>Selecione os documentos emitidos na consulta para gerar um texto padrão.</pre>
+          </div>
+        </div>
+      </section>
+    </div>
   </main>
   <footer>
-    &copy; <span id="year"></span> dresavoldi
+    &copy; <span id="year"></span> Prontuário Neurológico.
   </footer>
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
@@ -57,6 +685,43 @@
         console.log('Service worker registration failed', err);
       });
     }
+  </script>
+  <script>
+/* ===== Utilitários Enxutos ===== */const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s),on=(el,ev,cb)=>el&&el.addEventListener(ev,cb);const SKEY='evolucaoMedicaData_v17_singleRecord',DBKEY='pacientesDatabase_v2_singleRecord';const J=JSON,R=j=>J.stringify(j),P=j=>{try{return J.parse(j)}catch{return null}};const save=(k,v)=>{try{localStorage.setItem(k,R(v))}catch{}},load=k=>P(localStorage.getItem(k)||'null')||null;const today=()=>{const d=new Date();return`${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getFullYear()).slice(-2)}`};const idadeFrom=(ddmmyyyy)=>{if(!/^\d{2}\/\d{2}\/\d{4}$/.test(ddmmyyyy||''))return null;const[d,m,y]=ddmmyyyy.split('/').map(Number),n=new Date(y,m-1,d),h=new Date();let a=h.getFullYear()-n.getFullYear();const mm=h.getMonth()-n.getMonth();return mm<0||mm===0&&h.getDate()<n.getDate()?--a:a};const aiDelay=ms=>new Promise(r=>setTimeout(r,ms||800));const cap=s=>s.replace(/^\s+|\s+$/g,'');const splitLines=v=>(v||'').split('\n').map(cap).filter(Boolean).map(texto=>({texto}));const joinLines=a=>(a||[]).map(x=>x.texto).filter(Boolean).join('\n');const setVal=(id,v)=>{const e=document.getElementById(id);if(e){e.value=v;auto(e)}},getVal=id=>{const e=document.getElementById(id);return e?e.value.trim():''};const auto=e=>{e&&(e.style.height='auto',e.style.height=e.scrollHeight+'px')};const showSaved=(msg,ok=true)=>{const s=$('#save-status');if(!s)return;s.textContent=msg||'Salvo!';s.classList.remove('text-green-600','text-red-600');s.classList.add(ok?'text-green-600':'text-red-600');s.classList.remove('opacity-0');setTimeout(()=>s.classList.add('opacity-0'),2500)};/* ===== Estado ===== */const novoEstado=()=>({paciente:{nome:{texto:''},nascimento:{texto:''},acompanhante:'Não',ocupacao:{texto:''}},diagnosticos:[],historiaInicial:{texto:''},atual:{texto:''},evolucaoHistorico:{texto:''},isAISummary:false,historico:{comorbidades:[],cirurgiasHospitalizacoes:[],habitos:{etilismo:'Nega',tabagismo:'Nega'}},medicamentos:{usoAtual:[],usoPrevio:[]},complementares:[],exameFisico:{texto:''},conduta:{terapiaMedicamentosa:[],examesSolicitados:[],encaminhamento:[],documentos:[]}});let program=false,analiseAI={};/* ===== Geração Simplificada ===== */const evolLine=(d)=>{const r=(d.atual.texto||'').trim();if(!r)return'';const meds=(d.conduta.terapiaMedicamentosa||[]).map(m=>m.texto.match(/^([\wÀ-ü+]+)/)?.[0]).filter(Boolean);const parts=[meds.length?`Prescrito ${meds.join(', ')}`:null,(d.conduta.examesSolicitados||[]).some(x=>x.texto&&!/sem indicação/i.test(x.texto))?'Solicitado exames':null,(d.conduta.encaminhamento||[]).some(x=>x.texto&&!/sem indicação/i.test(x.texto))?'Encaminhado':null,(d.conduta.documentos||[]).length?`Fornecido ${(d.conduta.documentos||[]).map(x=>x.texto).join(', ')}`:null].filter(Boolean);const c=parts.join(', ');return`- ${today()} - ${r}. [${c||'Conduta'}]`};const evolucao=(d)=>{const nome=(d.paciente.nome.texto||'Nome do Paciente');const idade=idadeFrom(d.paciente.nascimento.texto);const diag=(d.diagnosticos||[]).map(x=>x.texto).filter(Boolean).join('\n')||'Nenhum diagnóstico informado';const hist=d.historiaInicial.texto||'[Descrição da queixa inicial]';const historicoSalvo=d.evolucaoHistorico.texto||'';const curr=evolLine(d);const ev=[historicoSalvo,curr].filter(Boolean).join('\n')||`- ${today()} - [Atual]. [Conduta]`;const comb=(d.historico.comorbidades||[]).map(x=>x.texto).filter(Boolean);const cir=(d.historico.cirurgiasHospitalizacoes||[]).map(x=>x.texto).filter(Boolean);const medA=(d.medicamentos.usoAtual||[]).map(x=>x.texto).filter(Boolean);const medP=(d.medicamentos.usoPrevio||[]).map(x=>x.texto).filter(Boolean);const comp=(d.complementares||[]).map(x=>`- ${x.texto}`).join('\n')||'- Sem exames atuais';const ef=d.exameFisico.texto||'Sem alterações';return`${nome}${idade!=null?`, ${idade} anos`:''}
+- Acompanhante: ${d.paciente.acompanhante||'Não'}
+- Ocupação: ${d.paciente.ocupacao.texto||'Não informada'}
+
+#Diagnóstico (CID)
+${diag}
+
+#História Inicial
+- ${hist}
+
+#Evolução
+${ev}
+
+#Histórico
+- Comorbidades: ${comb.length?comb.join(', '):'Nega Comorbidades'}
+  - Cirurgia / Hospitalização: ${cir.length?cir.join(', '):'Nega'}
+  - Hábitos
+    - Etilismo: ${d.historico.habitos.etilismo}
+    - Tabagismo: ${d.historico.habitos.tabagismo}
+
+#Medicamentos
+- Uso atual: ${medA.length?medA.join(', '):'Nega uso atual'}
+  - Uso Prévio: ${medP.length?medP.join(', '):'Nega uso prévio'}
+
+#Exames Complementares
+${comp}
+
+#Exame Físico/Neurológico
+- ${ef}
+
+#Conduta
+- Terapia: ${(d.conduta.terapiaMedicamentosa||[]).map(x=>x.texto).filter(Boolean).join(', ')||'Sem nova terapia medicamentosa'}
+- Exames: ${(d.conduta.examesSolicitados||[]).map(x=>x.texto).filter(Boolean).join(', ')||'Sem indicação atual'}
+- Encaminhamento: ${(d.conduta.encaminhamento||[]).map(x=>x.texto).filter(Boolean).join(', ')||'Sem indicação atual'}
+- Documentos: ${(d.conduta.documentos||[]).map(x=>x.texto).filter(Boolean).join(', ')||'Nenhum'}`};/* ===== Coleta / Render ===== */const coleta=()=>{const st=load(SKEY)||novoEstado();st.paciente={nome:{texto:getVal('paciente-nome')},nascimento:{texto:getVal('paciente-nascimento')},acompanhante:toggleVal('acompanhante'),ocupacao:{texto:getVal('paciente-ocupacao')}};st.diagnosticos=splitLines(getVal('tx-diag'));st.historiaInicial={texto:getVal('tx-hist')};st.atual={texto:getVal('tx-atual')};st.historico={comorbidades:splitLines(getVal('tx-comorb')),cirurgiasHospitalizacoes:splitLines(getVal('tx-cirurg')),habitos:{etilismo:toggleVal('etilismo'),tabagismo:toggleVal('tabagismo')}};st.medicamentos={usoAtual:splitLines(getVal('tx-med-atuais')),usoPrevio:splitLines(getVal('tx-med-prev'))};st.complementares=splitLines(getVal('tx-complement'));st.exameFisico={texto:getVal('tx-exame')};st.conduta={terapiaMedicamentosa:splitLines(getVal('tx-terapia')),examesSolicitados:splitLines(getVal('tx-exames')),encaminhamento:splitLines(getVal('tx-enc')),documentos:[...$('#docs-ck').querySelectorAll('input[type="checkbox"]:checked')].map(cb=>{const o={texto:cb.value};if(cb.id==='ck-atestado')o.dias=getVal('in-atel');if(cb.id==='ck-decl')o.acompanhante=getVal('in-decl');if(cb.id==='ck-laudo')o.tipoLaudo=(document.querySelector('input[name="laudo-tipo"]:checked')||{}).value||'Diagnóstico';return o})};return st};const toggleVal=name=>{const c=document.querySelector(`[data-toggle="${name}"]`);if(!c)return name==='acompanhante'?'Não':'Nega';const sim=c.querySelector('[data-v="sim"]').classList.contains('active');const det=c.querySelector('input');return sim?(det&&det.value.trim()?det.value.trim():'Sim'):(name==='acompanhante'?'Não':'Nega')};const setToggle=(name,val)=>{const c=document.querySelector(`[data-toggle="${name}"]`);if(!c)return;const sim=c.querySelector('[data-v="sim"]'),nao=c.querySelector('[data-v="nao"]'),inp=c.querySelector('input');const isSim=val&&!/^(não|nega)$/i.test(String(val));sim.classList.toggle('active',isSim);nao.classList.toggle('active',!isSim);if(inp){const custom=isSim&&!['sim','não','nega'].includes(String(val).toLowerCase());inp.classList.toggle('hidden',!isSim);inp.value=custom?val:''}};const render=(d)=>{program=true;const t=a=>a.map(x=>x.texto).filter(Boolean).join('\n');setVal('paciente-nome',d.paciente.nome.texto||'');setVal('paciente-nascimento',d.paciente.nascimento.texto||'');setVal('paciente-ocupacao',d.paciente.ocupacao.texto||'');setVal('tx-diag',t(d.diagnosticos));setVal('tx-hist',d.historiaInicial.texto||'');setVal('tx-atual',d.atual.texto||'');setVal('tx-comorb',t(d.historico.comorbidades));setVal('tx-cirurg',t(d.historico.cirurgiasHospitalizacoes));setVal('tx-med-atuais',t(d.medicamentos.usoAtual));setVal('tx-med-prev',t(d.medicamentos.usoPrevio));setVal('tx-complement',t(d.complementares));setVal('tx-exame',d.exameFisico.texto||'');setVal('tx-terapia',t(d.conduta.terapiaMedicamentosa));setVal('tx-exames',t(d.conduta.examesSolicitados));setVal('tx-enc',t(d.conduta.encaminhamento));['ck-atestado','ck-decl','ck-laudo'].forEach(id=>{const cb=document.getElementById(id);cb.checked=!!(d.conduta.documentos||[]).find(x=>x.texto===cb.value)});$('#in-atel').classList.toggle('hidden',!$('#ck-atestado').checked);$('#in-decl').classList.toggle('hidden',!$('#ck-decl').checked);$('#laudo-ops').classList.toggle('hidden',!$('#ck-laudo').checked);const ld=(d.conduta.documentos||[]).find(x=>x.texto==='Laudo');if(ld){const r=document.querySelector(`input[name="laudo-tipo"][value="${ld.tipoLaudo||'Diagnóstico'}"]`);r&&(r.checked=true)}setToggle('acompanhante',d.paciente.acompanhante);setToggle('etilismo',d.historico.habitos.etilismo);setToggle('tabagismo',d.historico.habitos.tabagismo);$('#out-evol').textContent=evolucao(d);program=false;save(SKEY,d)};const deb=(fn,t=400)=>{let id;return(...a)=>{clearTimeout(id);id=setTimeout(()=>fn(...a),t)}};const update=deb(()=>{if(program)return;const st=coleta();save(SKEY,st);$('#out-evol').textContent=evolucao(st);showSaved()},500);/* ===== IA Mock (mantido, reduzido) ===== */const separarDiag=async txt=>{await aiDelay();if(/cefaleia|enxaqueca/i.test(txt))return['Migrânea sem Aura (G43.0)','Cefaleia Tensional (G44.2)'];if(/parkinson/i.test(txt))return['Doença de Parkinson (G20)'];return txt.split(/[\,\n]/).map(cap).filter(Boolean).map(x=>/\([A-Z]/.test(x)?x:`${x} (R51)`)},sumarioIA=async hist=>{await aiDelay();if(/migrânea/i.test(hist))return'Migrânea com piora na frequência e intensidade.';if(/sono/i.test(hist))return'Insônia crônica com baixa adesão.';return'Resumo gerado automaticamente.'};/* ===== Eventos ===== */document.addEventListener('DOMContentLoaded',()=>{try{render(load(SKEY)||novoEstado())}catch(e){console.error(e);localStorage.removeItem(SKEY);localStorage.removeItem(DBKEY);render(novoEstado())}on($('#form'), 'input', e=>{if(e.target.tagName==='TEXTAREA')auto(e.target);if(e.target.id==='ck-atestado')$('#in-atel').classList.toggle('hidden',!e.target.checked);if(e.target.id==='ck-decl')$('#in-decl').classList.toggle('hidden',!e.target.checked);if(e.target.id==='ck-laudo')$('#laudo-ops').classList.toggle('hidden',!e.target.checked);update()});on($('#paciente-nome'),'blur',e=>{const name=e.target.value.trim();if(!name)return;const db=load(DBKEY)||{};db[name]&&render(db[name]);showSaved(`Histórico de ${name} carregado.`,true)});on($('#tx-diag'),'blur',async e=>{const v=e.target.value.trim();if(!v)return;$('#cid-sp').classList.remove('hidden');const lines=await separarDiag(v);$('#cid-sp').classList.add('hidden');e.target.value=lines.join('\n');auto(e.target);update()});on($('#tx-hist'),'blur',async e=>{if(e.target.value.trim()&&!$('#tx-atual').value.trim()){$('#resumo-sp').classList.remove('hidden');const r=await sumarioIA(e.target.value);$('#resumo-sp').classList.add('hidden');$('#tx-atual').value=r;auto($('#tx-atual'));const st=coleta();st.isAISummary=true;save(SKEY,st);$('#out-evol').textContent=evolucao(st)}});/* toggles sim/não */$$('[data-toggle]').forEach(c=>{on(c,'click',e=>{if(e.target.tagName!=='BUTTON')return;const isSim=e.target.dataset.v==='sim';c.querySelector('[data-v="sim"]').classList.toggle('active',isSim);c.querySelector('[data-v="nao"]').classList.toggle('active',!isSim);const inp=c.querySelector('input');inp&&inp.classList.toggle('hidden',!isSim);update()});const inp=c.querySelector('input');inp&&on(inp,'input',update)});/* collapsible */const CKEY='cstate_v1',SKEY2='cstate_sub_v1';const cst=load(CKEY)||{'dados':true,'atual':true,'complementares':true,'exame-fisico':true},csub=load(SKEY2)||{'ident-detalhes':true,'cirurgias':true,'habitos':true,'uso-previo':true,'cond-exames':true,'cond-enc':true,'cond-docs':true};const apply=(sel,map)=>{$$(sel).forEach(h=>{const id=h.dataset.sec||h.dataset.sub;if(map[id]){h.classList.add('collapsed');const n=h.nextElementSibling;n&&n.classList.add('collapsed')}})};apply('.coll-h[data-sec]',cst);apply('.coll-h[data-sub]',csub);on($('#form'),'click',e=>{const h=e.target.closest('.coll-h');if(!h||e.target.closest('button'))return;const id=h.dataset.sec||h.dataset.sub,body=h.nextElementSibling;if(!body||!id)return;h.classList.toggle('collapsed');body.classList.toggle('collapsed');const map=h.dataset.sec?cst:csub;map[id]=h.classList.contains('collapsed');save(h.dataset.sec?CKEY:SKEY2,map)});/* abas esquerda */$('#left-tabs').addEventListener('click',e=>{const btn=e.target.closest('.tab-btn');if(!btn)return;$('#left-tabs').querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');const key=btn.dataset.tabLeft;const id=key==='historico'?'tab-content-historico-left':`tab-content-${key}`;document.querySelectorAll('#left-wrap>.tcontent').forEach(el=>el.classList.remove('active'));const tgt=document.getElementById(id);tgt&&tgt.classList.add('active');if(key==='historico')renderHistorico()});/* abas direita */$('#right').querySelectorAll('.tab-btn').forEach(b=>on(b,'click',()=>{$('#right').querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('#right .tcontent').forEach(c=>c.classList.remove('active'));const t=document.getElementById(`tab-content-${b.dataset.tab}`);t&&t.classList.add('active')}));/* copiar */const copy=(txt,btn)=>{const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.left='-9999px';document.body.appendChild(ta);ta.select();let ok=true;try{document.execCommand('copy')}catch{ok=false}document.body.removeChild(ta);if(btn){const ot=btn.textContent;btn.textContent=ok?'Copiado!':'Erro';setTimeout(()=>btn.textContent=ot,1200)}};on($('#copy-evol'),'click',()=>{salvarEAnexar();copy($('#out-evol').textContent,$('#copy-evol'))});on($('#copy-rec'),'click',()=>{copy([...document.querySelectorAll('#rec-wrap pre')].map(p=>p.textContent).join('\n\n'),$('#copy-rec'))});on($('#copy-doc'),'click',()=>{copy([...document.querySelectorAll('#doc-wrap pre')].map(p=>p.textContent).join('\n\n'),$('#copy-doc'))});/* historico */function renderHistorico(){const db=load(DBKEY)||{},arr=Object.entries(db).map(([patientName,data])=>({patientName,data})).sort((a,b)=>a.patientName.localeCompare(b.patientName));const q=$('#search-hist').value.toLowerCase().trim();const fil=arr.filter(r=>{const di=(r.data.diagnosticos||[]).map(d=>d.texto).join(' ').toLowerCase();const id=String(idadeFrom(r.data.paciente.nascimento?.texto)||'');return r.patientName.toLowerCase().includes(q)||di.includes(q)||id.includes(q)});const html=fil.map(r=>{const idade=idadeFrom(r.data.paciente.nascimento?.texto)||'N/A';const last=(r.data.evolucaoHistorico?.texto||'').split('\n').pop()||'Nenhuma evolução.';return`<div class="card mb-4"><div class="border-b pb-2 mb-2"><h4 class="font-bold text-blue-700">${r.patientName} (${idade} anos)</h4><p class="text-gray-600 text-sm"><strong>Diagnóstico:</strong> ${(r.data.diagnosticos||[]).map(d=>d.texto).join(', ')||'N/A'}</p><p class="text-gray-500 text-xs mt-1"><strong>Última Evolução:</strong> ${last.replace(/-\s+\d{2}\.\d{2}\.\d{2}\s+-\s+/,'')}</p></div><div class="space-y-3"><div class=""><div class="flex justify-between items-center"><h5 class="font-semibold text-gray-700">Prévia Completa</h5><button class="btn btnp py-1 px-2" data-copy>Copiar</button></div><pre class="whitespace-pre-wrap bg-gray-50 p-2 rounded border mt-1 max-h-48 overflow-y-auto">${evolucao(r.data)}</pre></div><button class="btn btnp w-full py-1 mt-2" data-load="${r.patientName}">Carregar Ficha</button></div></div>`}).join('')||'<p class="text-center text-gray-500">Nenhum paciente encontrado.</p>';$('div#results').innerHTML=html;$('div#results').onclick=e=>{const t=e.target;if(t.matches('[data-copy]')){const pre=t.closest('.card').querySelector('pre');copy(pre.textContent,t)}if(t.matches('[data-load]')){const n=t.getAttribute('data-load');const db2=load(DBKEY)||{};db2[n]&&render(db2[n]);$('#left-tabs .tab-btn[data-tab-left="consulta"]').click()}}}on($('#search-hist'),'input',deb(renderHistorico,300));/* salvar consulta */function salvarEAnexar(){const cur=coleta();const name=(cur.paciente.nome.texto||'').trim();if(!name){showSaved('Informe o nome do paciente para salvar.',false);return}const db=load(DBKEY)||{};const rec=db[name]||novoEstado();Object.keys(cur).forEach(k=>{if(k!=='evolucaoHistorico')rec[k]=cur[k]});const lin=evolLine(rec);if(lin){const hist=(rec.evolucaoHistorico.texto||'');rec.evolucaoHistorico={texto:hist?`${hist}\n${lin}`:lin}}rec.atual={texto:''};rec.isAISummary=false;db[name]=rec;save(DBKEY,db);render(rec);showSaved('Consulta salva e anexada ao histórico!',true)}/* testes rápidos */(()=>{const must=['tab-content-consulta','tab-content-historico-left','tab-content-evolucao','tab-content-receita','tab-content-documentos'];const miss=must.filter(id=>!document.getElementById(id));if(miss.length)console.warn('IDs ausentes:',miss)})();});
   </script>
 </body>
 </html>
