@@ -3358,7 +3358,20 @@ Firebase:", error); showNotification(`Erro Firebase: ${error.message}`,
 NotificationTypes.ERROR); AppState.userId = null; initApp();
 handleNewPatient(); }
 }
-document.addEventListener('DOMContentLoaded', initFirebase);
+// document.addEventListener('DOMContentLoaded', initFirebase);
+document.addEventListener('DOMContentLoaded', () => {
+  // Se não houver configurações do Firebase ou se estiverem vazias, inicia em modo offline.
+  if (!AppConfig.FIREBASE_CONFIG || Object.keys(AppConfig.FIREBASE_CONFIG).length === 0) {
+    console.warn("Configuração do Firebase não encontrada. Iniciando em modo offline.");
+    // Chama initApp para anexar todos os listeners de interface e preparar a UI.
+    initApp();
+    // Cria um novo paciente em branco para começar.
+    handleNewPatient();
+  } else {
+    // Caso haja configuração válida, prossegue com a inicialização do Firebase.
+    initFirebase();
+  }
+});
 </script>
 </body>
 </html>
