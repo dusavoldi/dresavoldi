@@ -49,6 +49,11 @@ spin{to{transform:rotate(1turn)}}#sync-status{display:none;position:fixed;bottom
 12px;border-radius:20px;font-size:.85rem;z-index:999;align-items:center;gap:6px}#sync-status.show{display:inline-flex}#sync-status
 .spinner{width:14px;height:14px;border-top-color:#fff}.hidden{display:none!important}@media
 (min-width:1024px){#right-column{position:sticky;top:.5rem;align-self:start}}</style>
+<script>
+// Firebase credentials inserted for NMApp
+var __firebase_config = "{\"apiKey\":\"AIzASyBkSd-z_e08Unhtu2U66jCDOkYiSxpsvl10\",\"authDomain\":\"nmapp-e183e.firebaseapp.com\",\"projectId\":\"nmapp-e183e\",\"storageBucket\":\"nmapp-e183e.appspot.com\",\"messagingSenderId\":\"621715679787\",\"appId\":\"1:621715679787:web:10ca85f2b8453275963e\"}";
+</script>
+
 </head>
 <body class="p-1 md:p-2">
 <div id="notification-banner" class="fixed top-0 left-1/2
@@ -79,11 +84,11 @@ class="btn-submodo btn-hapvida">Hapvida</button>
 <button type="button" data-value="vita" data-submodo="vita"
 class="btn-submodo btn-vita">VITA</button>
 <button type="button" data-value="sao-vicente"
-data-submodo="sao-vicente" class="btn-submodo btn-sao-vicente
-hidden">São Vicente</button>
+data-submodo="sao-vicente" class="btn-submodo btn-sao-vicente">São
+Vicente</button>
 <button type="button" data-value="cruz-vermelha"
-data-submodo="cruz-vermelha" class="btn-submodo btn-cruz-vermelha
-hidden">Cruz Vermelha</button>
+data-submodo="cruz-vermelha" class="btn-submodo btn-cruz-vermelha">Cruz
+Vermelha</button>
 </div>
 </div>
 <div id="right-tabs" class="flex items-end w-full lg:w-auto
@@ -174,7 +179,7 @@ stroke-width="4"></circle>
 </div>
 <div class="collapsible-content collapsed">
 <textarea id="textarea-informacoes" class="form-input w-full shadow-sm
-mt-1" rows="4" placeholder="Cole uma evolução antiga, digite livremente
+mt-1" rows="1" placeholder="Cole uma evolução antiga, digite livremente
 para análise ou 'Novo' para limpar..."></textarea>
 </div>
 </section>
@@ -505,7 +510,7 @@ stroke-width="2" d="M19 9l-7 7-7-7"></path></svg> <span>História
 Inicial</span>
 </h2>
 <div class="collapsible-content collapsed"><textarea
-id="historia-inicial" class="form-input w-full shadow-sm" rows="2"
+id="historia-inicial" class="form-input w-full shadow-sm" rows="1"
 placeholder="Descrição da queixa inicial..."></textarea></div>
 </section>
 <section>
@@ -652,7 +657,7 @@ stroke-width="2" d="M19 9l-7 7-7-7"></path></svg> <span>Exame
 Físico/Neurológico</span>
 </h2>
 <div class="collapsible-content collapsed"><textarea id="exame-fisico"
-class="form-input w-full shadow-sm" rows="2" placeholder="Vigil,
+class="form-input w-full shadow-sm" rows="1" placeholder="Vigil,
 orientado..."></textarea></div>
 </section>
 <section>
@@ -673,8 +678,8 @@ stroke-linejoin="round" stroke-width="2" d="M19 9l-7
 7-7-7"></path></svg> Medicamento
 </h3>
 <div class="collapsible-content"><textarea id="textarea-terapia"
-class="form-input w-full shadow-sm" rows="2" placeholder="desvenlafaxina
-50mg 1-0-0&#10;prednisona bell"></textarea></div>
+class="form-input w-full shadow-sm" rows="1" placeholder="desvenlafaxina
+50mg 1-0-0 | prednisona bell..."></textarea></div>
 </div>
 <div class="info-card">
 <h3 class="font-semibold text-gray-700 text-sm mb-1 cursor-pointer
@@ -2081,29 +2086,43 @@ systemInstruction }] } }),
 "application/json", responseSchema } }),
 };
 const url = AppConfig.GEMINI_API_URL + AppConfig.API_KEY;
+let lastError = null;
 for (let attempt = 0; attempt < 3; attempt++) {
 try {
 const response = await fetch(url, { method: 'POST', headers: {
 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
 if (!response.ok) {
+lastError = new Error(`API Error: ${response.status}`);
 if ((response.status === 429 || response.status >= 500) && attempt < 2)
 {
 await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) *
 1000 + Math.random() * 1000));
-continue;
+continue; // Tenta novamente
 }
-throw new Error(`API Error: ${response.status}`);
+throw lastError; // Lança o erro se não for tentar novamente
 }
 const result = await response.json();
 const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-if (!text) throw new Error("API response is empty or invalid.");
-return responseSchema ? JSON.parse(text) : text;
+if (!text) {
+lastError = new Error("API response is empty or invalid.");
+throw lastError;
+}
+return responseSchema ? JSON.parse(text) : text; // Sucesso
 } catch (error) {
 console.error(`API call failed attempt ${attempt + 1}:`, error);
-if (attempt === 2) { showNotification(`Falha na comunicação com a IA:
-${error.message}`, NotificationTypes.ERROR); return null; }
+lastError = error; // Armazena o erro (pode ser falha de rede ou o erro
+lançado acima)
+if (attempt < 2) {
+// Se foi falha de rede (ex: fetch falhou), espera antes de tentar de
+novo
+await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) *
+1000 + Math.random() * 1000));
 }
 }
+}
+// Se todas as tentativas falharem
+showNotification(`Falha na comunicação com a IA: ${lastError?.message ||
+'Erro desconhecido'}`, NotificationTypes.ERROR);
 return null;
 }
 async function analisarTextoComIA(texto) {
@@ -2364,8 +2383,7 @@ AppState.isProgrammaticChange = true; AppState.currentPatientData =
 dados;
 setToggleValue('modoConsulta', dados.modoConsulta || 'consultorio');
 setSubmodoValue('subModoConsulta', dados.subModoConsulta);
-_atualizarVisibilidadeSubmodos((dados.modoConsulta || 'consultorio') ===
-'consultorio');
+_atualizarVisibilidadeSubmodos(dados.modoConsulta || 'consultorio');
 setValue('paciente-nome', dados.paciente?.nome?.texto);
 setValue('paciente-nascimento', dados.paciente?.nascimento?.texto);
 setValue('paciente-ocupacao', dados.paciente?.ocupacao?.texto);
@@ -2606,10 +2624,16 @@ let uso = "USO ORAL", medicamento = med.texto, quantidade = "01 caixa",
 instrucoes = ["Conforme orientação médica"];
 if (match) {
 const nomeCompleto = match[1].trim(); const posologiaCode =
-match[2].trim().replace(/,/g, '.'); const nomeBase =
-nomeCompleto.split(' ')[0].toLowerCase();
-const medInfo = MEDICAMENTO_MAP.get(nomeBase); let ref = '', form =
-'comprimido';
+match[2].trim().replace(/,/g, '.');
+const nomeCompletoLower = nomeCompleto.toLowerCase();
+let medInfo = null; let ref = '', form = 'comprimido';
+// Lógica de busca melhorada: iterar pelas chaves do map
+for (const [key, value] of MEDICAMENTO_MAP.entries()) {
+if (nomeCompletoLower.startsWith(key)) {
+medInfo = value;
+break;
+}
+}
 if (typeof medInfo === 'string') ref = medInfo; else if (typeof medInfo
 === 'object') { ref = medInfo.ref; form = medInfo.form; }
 medicamento = `${nomeCompleto} ${ref}`; const doses =
@@ -2998,9 +3022,25 @@ setSyncState(false); } AppState.isSaving = false;
 }, 1000);
 /** Atualiza a visibilidade dos botões de submodo (Hapvida, VITA, etc.)
 */
-function _atualizarVisibilidadeSubmodos(isConsultorio) {
-document.getElementById('submodos-container')?.classList.toggle(UI_CLASSES.HIDDEN,
-!isConsultorio); }
+function _atualizarVisibilidadeSubmodos(modo) { // 'modo' is
+"consultorio" or "hospital"
+const container = document.getElementById('submodos-container');
+if (!container) return;
+const isHospital = (modo === 'hospital');
+// 1. Mostra o container se for modo "hospital", esconde se for
+"consultorio"
+container.classList.toggle(UI_CLASSES.HIDDEN, !isHospital);
+// 2. (Os botões internos já estão todos visíveis por padrão no HTML)
+// 3. Limpa o submodo ativo se o container for escondido (mudou para
+"Consultório")
+if (!isHospital) {
+const activeSubmodo =
+container.querySelector(`.btn-submodo.${UI_CLASSES.ACTIVE}`);
+if (activeSubmodo) {
+activeSubmodo.classList.remove(UI_CLASSES.ACTIVE);
+}
+}
+}
 /** Manipula a mudança de checkboxes de Documentos (Atestado, Laudo,
 etc.) */
 function handleDocumentOptionChange(target, isProgrammatic = false) {
@@ -3084,7 +3124,9 @@ const detailInput = container.querySelector('input[type="text"]'); if
 (detailInput) detailInput.classList.toggle(UI_CLASSES.HIDDEN, value !==
 'sim');
 if (container.dataset.toggleContainer === 'modoConsulta') {
-_atualizarVisibilidadeSubmodos(value === 'consultorio'); }
+_atualizarVisibilidadeSubmodos(value); // Passa o valor ("consultorio"
+or "hospital")
+}
 renderizarPreviewsDebounced(); debouncedSave(target);
 } else if (target.matches('.btn-submodo')) {
 const container = target.closest('[data-toggle-container]'); if
@@ -3152,27 +3194,56 @@ debouncedSave(target); }
 }, 1000);
 /** Aplica um modelo de diagnóstico ao formulário. */
 function handleModelClick(modelButton) {
-try { const modelo = MODELOS_COMPLETOS[modelButton.dataset.modelo]; if
-(!modelo) return; const currentData = coletarDadosDoFormulario(); const
-existingDiags = new Set(currentData.diagnosticos.map(d => d.texto));
+try {
+const modelo = MODELOS_COMPLETOS[modelButton.dataset.modelo]; if
+(!modelo) return;
+const currentData = coletarDadosDoFormulario();
+const existingDiags = new Set(currentData.diagnosticos.map(d =>
+d.texto));
 const newDiags = modelo.diagnosticos.filter(d =>
 !existingDiags.has(d.texto));
-const mergedData = { ...currentData, diagnosticos:
-[...currentData.diagnosticos, ...newDiags], historiaInicial:
-modelo.historiaInicial?.texto ? { texto:
-(currentData.historiaInicial.texto + '\n' +
-modelo.historiaInicial.texto).trim() } : currentData.historiaInicial,
-exameFisico: modelo.exameFisico?.texto ? { texto:
-(currentData.exameFisico.texto + '\n' + modelo.exameFisico.texto).trim()
-} : currentData.exameFisico, conduta: { terapiaMedicamentosa:
-[...currentData.conduta.terapiaMedicamentosa,
-...(modelo.conduta?.terapiaMedicamentosa || [])], examesSolicitados:
-[...currentData.conduta.examesSolicitados,
-...(modelo.conduta?.examesSolicitados || [])], encaminhamento:
-[...currentData.conduta.encaminhamento,
-...(modelo.conduta?.encaminhamento || [])], documentos:
-currentData.conduta.documentos } };
-preencherFormulario(mergedData); renderizarPreviews();
+// Lógica de merge melhorada (inline) para substituir placeholders
+let newHistoriaInicial = currentData.historiaInicial.texto;
+if (modelo.historiaInicial?.texto) {
+const currentTrimmed = currentData.historiaInicial.texto.trim();
+const placeholdersHistoria = ['nega', 'descrição da queixa inicial...'];
+if (!currentTrimmed || placeholdersHistoria.some(p =>
+currentTrimmed.toLowerCase().startsWith(p))) {
+newHistoriaInicial = modelo.historiaInicial.texto;
+} else {
+newHistoriaInicial = (currentTrimmed + '\n' +
+modelo.historiaInicial.texto).trim();
+}
+}
+let newExameFisico = currentData.exameFisico.texto;
+if (modelo.exameFisico?.texto) {
+const currentTrimmed = currentData.exameFisico.texto.trim();
+const placeholdersExame = ['nega', 'normal', 'vigil, orientado...'];
+if (!currentTrimmed || placeholdersExame.some(p =>
+currentTrimmed.toLowerCase().startsWith(p))) {
+newExameFisico = modelo.exameFisico.texto;
+} else {
+newExameFisico = (currentTrimmed + '\n' +
+modelo.exameFisico.texto).trim();
+}
+}
+const mergedData = {
+...currentData,
+diagnosticos: [...currentData.diagnosticos, ...newDiags],
+historiaInicial: { texto: newHistoriaInicial },
+exameFisico: { texto: newExameFisico },
+conduta: {
+terapiaMedicamentosa: [...currentData.conduta.terapiaMedicamentosa,
+...(modelo.conduta?.terapiaMedicamentosa || [])],
+examesSolicitados: [...currentData.conduta.examesSolicitados,
+...(modelo.conduta?.examesSolicitados || [])],
+encaminhamento: [...currentData.conduta.encaminhamento,
+...(modelo.conduta?.encaminhamento || [])],
+documentos: currentData.conduta.documentos
+}
+};
+preencherFormulario(mergedData);
+renderizarPreviews();
 debouncedSave(modelButton);
 } catch (error) { console.error("Erro ao aplicar modelo:", error); if
 (typeof showNotification === 'function') { showNotification("Falha ao
@@ -3204,9 +3275,22 @@ const currentData = coletarDadosDoFormulario(); const linhaAtual =
 buildCurrentEvolutionLine(currentData); const historicoAntigo =
 currentData.evolucaoHistorico?.texto || '';
 const novoHistorico = [historicoAntigo,
-linhaAtual].filter(Boolean).join('\n'); const dataLimpa = {
-...currentData, historiaInicial: { texto: "" }, atual: { texto: "" },
-evolucaoHistorico: { texto: novoHistorico } };
+linhaAtual].filter(Boolean).join('\n');
+// CORREÇÃO: Limpa campos da consulta atual (história, atual) E a
+conduta anterior.
+const dataLimpa = {
+...currentData,
+historiaInicial: { texto: "" },
+atual: { texto: "" },
+evolucaoHistorico: { texto: novoHistorico },
+conduta: { // Limpa a conduta da consulta que acabou de ser salva
+terapiaMedicamentosa: [],
+examesSolicitados: [],
+encaminhamento: [],
+documentos: []
+},
+lmeMedicamentos: {} // Limpa os checkboxes de LME
+};
 preencherFormulario(dataLimpa); renderizarPreviews();
 debouncedSave(evolucaoOutput); showNotification('Evolução copiada e
 consulta finalizada!', NotificationTypes.SUCCESS);
@@ -3215,32 +3299,53 @@ consulta finalizada!', NotificationTypes.SUCCESS);
 /** Debounce para a análise de IA do campo "Informações". */
 const handleInformacoesBlurAnalysisDebounced = debounce(async (text) =>
 {
-if (text.trim().length < 50 || text.toLowerCase().trim() === 'novo')
-return;
+const lowerText = text.toLowerCase().trim();
+// 1. Lógica para "Novo"
+if (lowerText === 'novo') {
+showNotification("Limpando formulário...", NotificationTypes.INFO);
+handleNewPatient(); // Corrigido: Chamar a função de limpar
+return; // Parar a execução
+}
+// 2. Lógica para análise (só analisar se tiver texto suficiente)
+if (text.trim().length < 50) return;
+// 3. Executar Análise com IA
 document.getElementById('analise-spinner')?.classList.remove(UI_CLASSES.HIDDEN);
 const extractedData = await analisarTextoComIA(text);
 document.getElementById('analise-spinner')?.classList.add(UI_CLASSES.HIDDEN);
-if (extractedData) { const currentData = coletarDadosDoFormulario();
+if (extractedData) {
+const currentData = coletarDadosDoFormulario();
 const mergedData = mergeExtractedData(currentData, extractedData, text);
-preencherFormulario(mergedData); renderizarPreviews();
+preencherFormulario(mergedData);
+renderizarPreviews();
 debouncedSave(document.getElementById('textarea-informacoes'));
 showNotification('Dados extraídos da evolução anterior!',
-NotificationTypes.INFO); }
+NotificationTypes.INFO);
+}
 }, 500);
 /** Manipula o evento 'blur' (perda de foco) dos campos do formulário.
 */
 function handleFormBlur(event) {
-try { if (AppState.isProgrammaticChange) return; const target =
-event.target; if (!target || (target.tagName !== 'INPUT' &&
-target.tagName !== 'TEXTAREA')) return;
-const originalValue = target.value; const newValue =
-toSentenceCase(originalValue);
+try {
+if (AppState.isProgrammaticChange) return;
+const target = event.target;
+if (!target || (target.tagName !== 'INPUT' && target.tagName !==
+'TEXTAREA')) return;
+const originalValue = target.value;
+const newValue = toSentenceCase(originalValue);
 if (target.id === 'textarea-informacoes') {
-handleInformacoesBlurAnalysisDebounced(newValue); return; } if
-(target.id === 'paciente-nome') return;
-if (newValue !== originalValue) { AppState.isProgrammaticChange = true;
-target.value = newValue; AppState.isProgrammaticChange = false;
-renderizarPreviewsDebounced(); debouncedSave(target); }
+handleInformacoesBlurAnalysisDebounced(newValue);
+return;
+}
+// Pular formatação de campos especiais que têm sua própria lógica
+if (target.id === 'paciente-nome' || target.id ===
+'textarea-diagnosticos') return;
+if (newValue !== originalValue) {
+AppState.isProgrammaticChange = true;
+target.value = newValue;
+AppState.isProgrammaticChange = false;
+renderizarPreviewsDebounced();
+debouncedSave(target);
+}
 } catch (error) { console.error("Erro inesperado no blur do
 formulário:", error); if (typeof showNotification === 'function') {
 showNotification("Erro ao formatar os dados.", NotificationTypes.ERROR);
@@ -3300,7 +3405,8 @@ textareaMedicamentosPrevios?.addEventListener('input', (e) => { const
 target = e.target; if (target.value.includes('\n')) {
 AppState.isProgrammaticChange = true; target.value =
 target.value.replace(/\n/g, ', ').replace(/, +/g, ', ').trim();
-autoResizeTextarea(target); AppState.isProgrammaticChange = false; } });
+autoResizeTextarea(target); AppState.isProgrammaticChange = false;
+renderizarPreviewsDebounced(); debouncedSave(target); } });
 document.body.dataset.initAppCalled = 'true'; console.log("Listeners de
 eventos da aplicação anexados.");
 }
@@ -3358,20 +3464,7 @@ Firebase:", error); showNotification(`Erro Firebase: ${error.message}`,
 NotificationTypes.ERROR); AppState.userId = null; initApp();
 handleNewPatient(); }
 }
-// document.addEventListener('DOMContentLoaded', initFirebase);
-document.addEventListener('DOMContentLoaded', () => {
-  // Se não houver configurações do Firebase ou se estiverem vazias, inicia em modo offline.
-  if (!AppConfig.FIREBASE_CONFIG || Object.keys(AppConfig.FIREBASE_CONFIG).length === 0) {
-    console.warn("Configuração do Firebase não encontrada. Iniciando em modo offline.");
-    // Chama initApp para anexar todos os listeners de interface e preparar a UI.
-    initApp();
-    // Cria um novo paciente em branco para começar.
-    handleNewPatient();
-  } else {
-    // Caso haja configuração válida, prossegue com a inicialização do Firebase.
-    initFirebase();
-  }
-});
+document.addEventListener('DOMContentLoaded', initFirebase);
 </script>
 </body>
 </html>
